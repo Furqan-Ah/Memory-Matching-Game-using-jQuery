@@ -1,0 +1,163 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Memory Matching Game</title>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+
+#gameBoard{
+width:400px;
+display:flex;
+flex-wrap:wrap;
+}
+
+.card{
+width:80px;
+height:80px;
+margin:5px;
+background:#333;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:40px;
+cursor:pointer;
+border-radius:8px;
+}
+
+.flipped{
+background:white;
+color:black;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="gameHeader">
+<h2>Memory Matching Game</h2>
+<p>Moves: <span id="moves">0</span></p>
+<p>Time: <span id="timer">0</span> seconds</p>
+</div>
+
+<div id="gameBoard"></div>
+
+<div id="winMessage" style="display:none;">
+<h2>You Win!</h2>
+</div>
+
+<audio id="matchSound" src="match.mp3"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+
+<script>
+
+$(document).ready(function(){
+
+var symbols = ["A","A","B","B","C","C","D","D"];
+symbols.sort(()=>0.5-Math.random());   // shuffle
+
+var first=null;
+var second=null;
+var lock=false;
+
+var moves=0;
+var matches=0;
+
+var time=0;
+var timerStarted=false;
+
+setInterval(function(){
+if(timerStarted){
+time++;
+$("#timer").text(time);
+}
+},1000);
+
+
+// create cards
+for(let i=0;i<symbols.length;i++){
+
+$("#gameBoard").append(
+"<div class='card' data-symbol='"+symbols[i]+"'>?</div>"
+);
+
+}
+
+
+// click card
+$(".card").click(function(){
+
+if(lock) return;
+
+if(!timerStarted){
+timerStarted=true;
+}
+
+if($(this).hasClass("flipped")) return;
+
+$(this).addClass("flipped");
+$(this).text($(this).data("symbol"));
+
+if(first==null){
+first=$(this);
+}
+else{
+
+second=$(this);
+lock=true;
+
+moves++;
+$("#moves").text(moves);
+
+
+// check match
+if(first.data("symbol")==second.data("symbol")){
+
+$("#matchSound")[0].play();
+
+matches++;
+
+first=null;
+second=null;
+lock=false;
+
+
+// win condition
+if(matches==symbols.length/2){
+$("#winMessage").show();
+}
+
+}
+else{
+
+$("#wrongSound")[0].play();
+
+setTimeout(function(){
+
+first.removeClass("flipped").text("?");
+second.removeClass("flipped").text("?");
+
+first=null;
+second=null;
+
+lock=false;
+
+},1000);
+
+}
+
+}
+
+});
+
+});
+
+</script>
+
+</body>
+</html>
